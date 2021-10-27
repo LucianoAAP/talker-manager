@@ -1,9 +1,16 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const rescue = require('express-rescue');
 const fs = require('fs/promises');
 const crypto = require('crypto');
-const { validateEmail } = require('./middlewares/validateLogin');
-const { validatePassword } = require('./middlewares/validateLogin');
+const { validateEmail, validatePassword } = require('./middlewares/validateLogin');
+const auth = require('./middlewares/authorization');
+const errorMiddleware = require('./middlewares/error');
+const {
+  validateName,
+  validateAge,
+  validateTalk,
+  createId } = require('./middlewares/validateNewTalker');
 
 const app = express();
 app.use(bodyParser.json());
@@ -16,11 +23,11 @@ app.get('/', (_request, response) => {
   response.status(HTTP_OK_STATUS).send();
 });
 
-app.get('/talker', async (_req, res) => {
+app.get('/talker', rescue(async (_req, res) => {
   const talkers = await fs.readFile('talker.json', 'utf-8').then((r) => JSON.parse(r));
   if (!talkers || talkers.length === 0) return res.status(200).json([]);
   return res.status(200).json(talkers);
-});
+}));
 
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
@@ -34,6 +41,18 @@ app.post('/login', validateEmail, validatePassword, (_req, res) => {
   const token = crypto.randomBytes(8).toString('hex');
   return res.status(200).json({ token });
 });
+
+app.post('/talker', [auth, validateName, validateAge, validateTalk, rescue(async (req, res) => {
+  const { name, age, talk } = req.body;
+  const talkers = await fs.readFile('talker.json', 'utf-8').then((r) => JSON.parse(r));
+  const id = createId(talkers);
+  const newTalker = { id, name, age, talk };
+  const newTalkers = [...talkers, newTalker];
+  await fs.writeFile('talker.json', JSON.stringify(newTalkers));
+  return res.status(201).json(newTalker);
+})]);
+
+app.use(errorMiddleware);
 
 app.listen(PORT, () => {
   console.log('Online');
