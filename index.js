@@ -66,6 +66,14 @@ app.put('/talker/:id', [auth, validateName, validateAge, validateTalk, rescue(as
   return res.status(200).json(newTalker);
 })]);
 
+app.delete('/talker/:id', auth, rescue(async (req, res) => {
+  const id = parseInt(req.params.id, 10);
+  const talkers = await fs.readFile(talkersFile, 'utf-8').then((r) => JSON.parse(r));
+  const newTalkers = talkers.filter((talker) => talker.id !== id);
+  await fs.writeFile(talkersFile, JSON.stringify(newTalkers));
+  return res.status(200).json({ message: 'Pessoa palestrante deletada com sucesso' });
+}));
+
 app.use(errorMiddleware);
 
 app.listen(PORT, () => {
