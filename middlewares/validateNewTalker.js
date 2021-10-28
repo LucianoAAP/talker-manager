@@ -19,7 +19,7 @@ const validateAge = (req, res, next) => {
 };
 
 const getTalkStatus = (talk) => (
-    !talk || !talk.watchedAt || !talk.rate || talk.watchedAt === '' || talk.rate === ''
+  !talk || !talk.watchedAt || talk.rate === undefined || talk.watchedAt === '' || talk.rate === ''
   );
 
 const getWatchedAtStatus = (watchedAt) => {
