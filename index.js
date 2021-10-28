@@ -30,6 +30,17 @@ app.get('/talker', rescue(async (_req, res) => {
   return res.status(200).json(talkers);
 }));
 
+app.get('/talker/search', auth, rescue(async (req, res) => {
+  const { q } = req.query;
+  const talkers = await fs.readFile(talkersFile, 'utf-8').then((r) => JSON.parse(r));
+  const newTalkers = talkers
+    .filter((talker) => talker.name.includes(q)
+      || talker.age === q
+      || talker.talk.watchedAt === q.watchedAt
+      || talker.talk.rate === q.rate);
+      return res.status(200).json(newTalkers);
+}));
+
 app.get('/talker/:id', async (req, res) => {
   const { id } = req.params;
   const talkers = await fs.readFile(talkersFile, 'utf-8').then((r) => JSON.parse(r));
