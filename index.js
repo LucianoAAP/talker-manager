@@ -38,7 +38,7 @@ app.get('/talker/search', auth, rescue(async (req, res) => {
       || talker.age === q
       || talker.talk.watchedAt === q.watchedAt
       || talker.talk.rate === q.rate);
-      return res.status(200).json(newTalkers);
+  return res.status(200).json(newTalkers);
 }));
 
 app.get('/talker/:id', async (req, res) => {
